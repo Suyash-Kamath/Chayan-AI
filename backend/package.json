@@ -1,0 +1,26 @@
+{
+  "name": "final-resume-screening-backend",
+  "version": "1.0.0",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.12",
+    "argon2": "^0.31.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "iconv-lite": "^0.6.3",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.8.0",
+    "mongodb": "^6.9.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.15",
+    "openai": "^4.63.0",
+    "pdf-parse": "^1.1.1",
+    "pdf2pic": "^2.2.3",
+    "validator": "^13.12.0"
+  }
+}
