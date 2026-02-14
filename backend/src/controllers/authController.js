@@ -141,19 +141,19 @@ async function forgotPassword(req, res) {
 
   const resetLink = `${env.FRONTEND_BASE_URL}/reset-password?token=${resetToken}`;
 
-  const subject = "Password Reset Request - Prohire";
+  const subject = "Password Reset Request - Chayan AI";
   const body = `
   <html>
       <body>
           <h2>Password Reset Request</h2>
           <p>Hello ${recruiter.username},</p>
-          <p>You have requested to reset your password for Prohire</p>
+          <p>You have requested to reset your password for Chayan AI</p>
           <p>Click the link below to reset your password:</p>
           <p><a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Reset Password</a></p>
           <p>This link will expire in ${RESET_TOKEN_EXPIRE_MINUTES} minutes.</p>
           <p>If you didn't request this reset, please ignore this email.</p>
           <br>
-          <p>Best regards,<br>ProHire Team</p>
+          <p>Best regards,<br>Chayan AI Team</p>
       </body>
   </html>
   `;

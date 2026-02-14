@@ -16,9 +16,9 @@ function Auth({
   return (
     <div className="login-layout">
       <div className="login-card">
-        <h1 className="login-title">ProHire</h1>
+        <h1 className="login-title">Chayan AI</h1>
         <p className="login-subtitle">
-          Apply karo chahe kahin se, shortlisting hoga yahin se.
+         Sūkṣma Parīkṣaṇam. Yathārtha Chayanam.
         </p>
 
         {authMode === "login" ? (

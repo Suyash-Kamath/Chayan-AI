@@ -4,7 +4,7 @@ function Sidebar({ currentPage, setCurrentPage, recruiterName, handleLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="sidebar-title">ProHire</div>
+        <div className="sidebar-title">Chayan AI</div>
       </div>
 
       <nav className="sidebar-nav">
