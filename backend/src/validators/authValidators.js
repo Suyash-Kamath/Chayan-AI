@@ -1,8 +1,15 @@
 const validator = require("validator");
 
+function normalizeString(value) {
+  if (typeof value !== "string") return "";
+  return value.trim();
+}
+
 function validateRegister(payload) {
   const errors = [];
-  const { username, password, email } = payload || {};
+  const username = normalizeString(payload?.username);
+  const password = typeof payload?.password === "string" ? payload.password : "";
+  const email = normalizeString(payload?.email).toLowerCase();
 
   if (!username || !password || !email) {
     errors.push("Missing username, password, or email");
@@ -22,7 +29,8 @@ function validateRegister(payload) {
 
 function validateRegisterForm(payload) {
   const errors = [];
-  const { username, password } = payload || {};
+  const username = normalizeString(payload?.username);
+  const password = typeof payload?.password === "string" ? payload.password : "";
 
   if (!username || !password) {
     errors.push("Missing username or password");
@@ -32,7 +40,8 @@ function validateRegisterForm(payload) {
 
 function validateLogin(payload) {
   const errors = [];
-  const { username, password } = payload || {};
+  const username = normalizeString(payload?.username);
+  const password = typeof payload?.password === "string" ? payload.password : "";
 
   if (!username || !password) {
     errors.push("Missing username or password");
@@ -41,7 +50,7 @@ function validateLogin(payload) {
 }
 
 function validateForgotPassword(payload) {
-  const { email } = payload || {};
+  const email = normalizeString(payload?.email).toLowerCase();
   if (!email || !validator.isEmail(email)) {
     return { isValid: false, errors: ["Invalid email"] };
   }

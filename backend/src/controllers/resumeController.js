@@ -9,6 +9,41 @@ const { extractTextFromPdf, extractTextFromDocx, extractTextFromDoc, extractText
 const { formatDateWithDay, getHiringTypeLabel, getLevelLabel } = require("../utils/date");
 const { validateAnalyzeResumes } = require("../validators/resumeValidators");
 
+function mimeFromExtension(filename = "") {
+  const ext = path.extname(filename).toLowerCase();
+  const map = {
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".bmp": "image/bmp",
+    ".webp": "image/webp",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".doc": "application/msword",
+  };
+  return map[ext] || "application/octet-stream";
+}
+
+function mimeFromBuffer(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 4) return null;
+  if (buffer.slice(0, 5).toString("ascii") === "%PDF-") return "application/pdf";
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "image/jpeg";
+  if (buffer.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
+  if (buffer.slice(0, 6).toString("ascii") === "GIF87a" || buffer.slice(0, 6).toString("ascii") === "GIF89a") return "image/gif";
+  if (buffer.slice(0, 2).toString("ascii") === "BM") return "image/bmp";
+  if (buffer.slice(0, 4).toString("ascii") === "RIFF" && buffer.slice(8, 12).toString("ascii") === "WEBP") return "image/webp";
+  if (buffer.slice(0, 4).equals(Buffer.from([0x49, 0x49, 0x2a, 0x00])) || buffer.slice(0, 4).equals(Buffer.from([0x4d, 0x4d, 0x00, 0x2a]))) return "image/tiff";
+  return null;
+}
+
+function resolveContentType(filename, storedType, buffer) {
+  if (storedType && storedType !== "application/octet-stream") return storedType;
+  return mimeFromBuffer(buffer) || mimeFromExtension(filename);
+}
+
 async function analyzeResumes(req, res) {
   const files = req.files || [];
   const { isValid, errors } = validateAnalyzeResumes(req.body, files);
@@ -131,10 +166,13 @@ async function downloadResume(req, res) {
     const fileId = req.params.file_id;
     const gridOut = openDownloadStream(fileId);
     gridOut.on("file", (file) => {
+      const resolvedType = resolveContentType(file.filename, file.metadata?.content_type);
       res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
-      res.setHeader("Content-Type", file.metadata?.content_type || "application/octet-stream");
+      res.setHeader("Content-Type", resolvedType);
     });
-    gridOut.on("error", () => res.status(404).json({ detail: "File not found" }));
+    gridOut.on("error", () => {
+      if (!res.headersSent) return res.status(404).json({ detail: "File not found" });
+    });
     gridOut.pipe(res);
   } catch (err) {
     return res.status(404).json({ detail: "File not found" });
@@ -145,14 +183,23 @@ async function viewResume(req, res) {
   try {
     const fileId = req.params.file_id;
     const gridOut = openDownloadStream(fileId);
+    let fileInfo = null;
     const chunks = [];
+    gridOut.on("file", (file) => {
+      fileInfo = file;
+    });
     gridOut.on("data", (chunk) => chunks.push(chunk));
     gridOut.on("error", () => res.status(404).json({ detail: "File not found" }));
     gridOut.on("end", () => {
       const fileContent = Buffer.concat(chunks);
+      const resolvedType = resolveContentType(
+        fileInfo?.filename,
+        fileInfo?.metadata?.content_type,
+        fileContent
+      );
       return res.json({
-        filename: gridOut.filename,
-        content_type: gridOut.s?.metadata?.content_type || "application/octet-stream",
+        filename: fileInfo?.filename || "file",
+        content_type: resolvedType,
         size: fileContent.length,
         content: fileContent.toString("base64"),
       });

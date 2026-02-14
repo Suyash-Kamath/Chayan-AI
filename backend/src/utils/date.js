@@ -7,10 +7,16 @@ function formatDateWithDay(dt) {
     else if (mod === 2) suffix = "nd";
     else if (mod === 3) suffix = "rd";
   }
-  const options = { year: "numeric", month: "long", day: "2-digit", weekday: "long", timeZone: "UTC" };
-  const formatted = new Intl.DateTimeFormat("en-US", options).format(dt);
-  const [weekday, month, dayNum, year] = formatted.replace(",", "").split(" ");
-  return `${dayNum}${suffix} ${month} ${year}, ${weekday}`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    weekday: "long",
+    timeZone: "UTC",
+  }).formatToParts(dt);
+  const month = parts.find((p) => p.type === "month")?.value || "";
+  const year = parts.find((p) => p.type === "year")?.value || "";
+  return `${day}${suffix} ${month} ${year}, ${parts.find((p) => p.type === "weekday")?.value || ""}`;
 }
 
 function getHiringTypeLabel(hiringType) {

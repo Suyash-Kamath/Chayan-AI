@@ -12,6 +12,11 @@ const env = require("../config/env");
 const { getCollections } = require("../config/db");
 const { sendEmail } = require("../services/emailService");
 
+function normalizeString(value) {
+  if (typeof value !== "string") return "";
+  return value.trim();
+}
+
 function createAccessToken(data, expiresMinutes = ACCESS_TOKEN_EXPIRE_MINUTES) {
   const exp = Math.floor(Date.now() / 1000) + expiresMinutes * 60;
   return jwt.sign({ ...data, exp }, SECRET_KEY, { algorithm: ALGORITHM });
@@ -38,10 +43,9 @@ async function register(req, res) {
     return res.status(400).json({ detail: errors[0] });
   }
 
-  const { username, password, email } = req.body || {};
-
-  const cleanUsername = username.trim();
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanUsername = normalizeString(req.body?.username);
+  const password = req.body?.password;
+  const cleanEmail = normalizeString(req.body?.email).toLowerCase();
 
   const { recruiters } = getCollections();
   const existingUsername = await recruiters.findOne({ username: cleanUsername });
@@ -71,8 +75,8 @@ async function registerForm(req, res) {
     return res.status(400).json({ detail: errors[0] });
   }
 
-  const { username, password } = req.body || {};
-  const cleanUsername = username.trim();
+  const cleanUsername = normalizeString(req.body?.username);
+  const password = req.body?.password;
   const { recruiters } = getCollections();
   const existing = await recruiters.findOne({ username: cleanUsername });
   if (existing) {
@@ -93,8 +97,8 @@ async function login(req, res) {
     return res.status(400).json({ detail: errors[0] });
   }
 
-  const { username, password } = req.body || {};
-  const cleanUsername = username.trim();
+  const cleanUsername = normalizeString(req.body?.username);
+  const password = req.body?.password;
   const { recruiters } = getCollections();
   const recruiter = await recruiters.findOne({ username: cleanUsername });
   if (!recruiter) {
@@ -119,8 +123,7 @@ async function forgotPassword(req, res) {
     return res.json({ msg: "If the email exists, you will receive a password reset link" });
   }
 
-  const { email } = req.body || {};
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanEmail = normalizeString(req.body?.email).toLowerCase();
   const { recruiters, resetTokens } = getCollections();
   const recruiter = await recruiters.findOne({ email: cleanEmail });
   if (!recruiter) {
